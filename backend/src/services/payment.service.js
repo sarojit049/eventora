@@ -5,16 +5,15 @@ const Event = require('../models/Event');
 const ApiError = require('../utils/ApiError');
 const { generateBookingReference, calculateBookingTotal, validateAvailability } = require('../utils/bookingHelpers');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_key_id',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_key_secret',
-});
-
 const createOrder = async (userId, { eventId, quantity }) => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    throw new ApiError(500, 'Payment configuration is missing');
+    throw new ApiError(500, 'Payment configuration is missing on server');
   }
+
+  const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
 
   const event = await Event.findById(eventId);
   if (!event) {
@@ -74,7 +73,7 @@ const createOrder = async (userId, { eventId, quantity }) => {
     // Extract safe message from Razorpay error if available
     let safeMessage = 'Failed to create payment order';
     if (error.statusCode === 401) {
-      safeMessage = 'Payment gateway authentication failed. Please check configuration.';
+      safeMessage = 'Payment gateway authentication failed. Please check backend configuration.';
     } else if (error.error && error.error.description) {
       safeMessage = error.error.description;
     }
@@ -87,7 +86,7 @@ const verifyPayment = async (userId, { razorpay_order_id, razorpay_payment_id, r
   const secret = process.env.RAZORPAY_KEY_SECRET;
   
   if (!secret) {
-    throw new ApiError(500, 'Payment configuration is missing');
+    throw new ApiError(500, 'Payment configuration is missing on server');
   }
 
   const booking = await Booking.findById(bookingId).populate('event');
@@ -110,7 +109,10 @@ const verifyPayment = async (userId, { razorpay_order_id, razorpay_payment_id, r
     .update(body.toString())
     .digest('hex');
 
-  if (expectedSignature !== razorpay_signature) {
+  const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+  const signatureBuffer = Buffer.from(razorpay_signature, 'hex');
+
+  if (expectedBuffer.length !== signatureBuffer.length || !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)) {
     throw new ApiError(400, 'Invalid payment signature');
   }
 
