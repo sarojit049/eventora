@@ -29,7 +29,12 @@ export function AuthProvider({ children }) {
       localStorage.setItem('eventora_token', authToken);
       return { success: true, user: userData };
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      let message = 'Login failed';
+      if (!error.response) {
+        message = 'Network error: Cannot reach the server. Please check your connection or CORS settings.';
+      } else {
+        message = error.response.data?.message || `Login failed with status ${error.response.status}`;
+      }
       return { success: false, message };
     } finally {
       setLoading(false);
@@ -47,8 +52,14 @@ export function AuthProvider({ children }) {
       localStorage.setItem('eventora_token', authToken);
       return { success: true, user: userData };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
-      const errors = error.response?.data?.errors;
+      let message = 'Registration failed';
+      let errors = null;
+      if (!error.response) {
+        message = 'Network error: Cannot reach the server. Please check your connection or CORS settings.';
+      } else {
+        message = error.response.data?.message || `Registration failed with status ${error.response.status}`;
+        errors = error.response.data?.errors;
+      }
       return { success: false, message, errors };
     } finally {
       setLoading(false);
