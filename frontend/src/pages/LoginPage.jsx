@@ -104,12 +104,6 @@ export default function LoginPage() {
             <Link to="/register" className="text-primary-600 font-medium hover:underline" id="go-to-register">Create one</Link>
           </div>
 
-          {/* Demo Credentials */}
-          <div className="mt-4 p-3 bg-navy-50 rounded-lg text-xs text-navy-500">
-            <p className="font-medium text-navy-700 mb-1">Demo Credentials:</p>
-            <p>Admin: admin@eventora.com / Admin@123</p>
-            <p>User: priya@example.com / User@123</p>
-          </div>
         </div>
       </div>
     </div>

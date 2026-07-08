@@ -14,6 +14,7 @@ const startServer = async () => {
 ║                                              ║
 ║  Environment: ${config.env.padEnd(30)}║
 ║  Port:        ${String(config.port).padEnd(30)}║
+║  CORS Origin: ${config.cors.origin.padEnd(30)}║
 ║  API Docs:    http://localhost:${config.port}/api-docs   ║
 ║  Health:      http://localhost:${config.port}/health     ║
 ║                                              ║
