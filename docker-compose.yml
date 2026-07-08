@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - eventora-network
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongodb:27017/eventora
+      - JWT_SECRET=docker_secret_jwt_change_in_prod
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:8080
+    depends_on:
+      - mongodb
+    networks:
+      - eventora-network
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - eventora-network
+
+volumes:
+  mongo-data:
+
+networks:
+  eventora-network:
+    driver: bridge
